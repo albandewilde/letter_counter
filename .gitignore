@@ -1,0 +1,8 @@
+# vim open files
+*.swp
+
+# don't commit our secrets
+secrets.json
+
+# don't commit our env variables
+env.json
