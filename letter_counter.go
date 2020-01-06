@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -15,9 +14,9 @@ import (
 
 type Score struct {
 	USER     string // username#discriminator
-	CHAR     int64
+	CHAR     int
 	CHAR_LVL string
-	MSG      int64
+	MSG      int
 	MSG_LVL  string
 	RATIO    float64
 	RANK     int
@@ -34,8 +33,8 @@ func main() {
 	}
 
 	// Register funcs callback.
-	bot.AddHandler(getScore)
 	bot.AddHandler(counting)
+	bot.AddHandler(getScore)
 
 	// Open a websocket connection to Discord and begin listening.
 	err = bot.Open()
@@ -91,16 +90,24 @@ func getScore(s *discordgo.Session, m *discordgo.MessageCreate) {
 		"want to know his score.",
 	)
 
-	username := m.Author.Username + "#" + m.Author.Discriminator
-	var score Score = calculateScoreOfUser(username)
+	var score Score
+	var err error
+	score, err = calculateScoreOfUser(m.Author)
 
-	response := "```txt\n" +
-		fmt.Sprintf("User: %s\n\n", score.USER) +
-		fmt.Sprintf("Written characters: %d\nCaracter level: %s\n\n", score.CHAR, score.CHAR_LVL) +
-		fmt.Sprintf("Messages sent: %d\nMessage level: %s\n\n", score.MSG, score.MSG_LVL) +
-		fmt.Sprintf("Ratio (written caracters/messages sent): %.2f\n\n", score.RATIO) +
-		fmt.Sprintf("Rank: #%d\n\n", score.RANK) +
-		"```"
+	var response string
+	if err != nil {
+		fmt.Println("Error:", err)
+		response = "Sorry, something is wrong."
+	} else {
+
+		response = "```txt\n" +
+			fmt.Sprintf("User: %s\n\n", score.USER) +
+			fmt.Sprintf("Written characters: %d\nCaracter level: %s\n\n", score.CHAR, score.CHAR_LVL) +
+			fmt.Sprintf("Messages sent: %d\nMessage level: %s\n\n", score.MSG, score.MSG_LVL) +
+			fmt.Sprintf("Ratio (written caracters/messages sent): %.2f\n\n", score.RATIO) +
+			fmt.Sprintf("Rank: #%d\n\n", score.RANK) +
+			"```"
+	}
 
 	s.ChannelMessageSend(m.ChannelID, response)
 
@@ -125,32 +132,36 @@ func counting(s *discordgo.Session, m *discordgo.MessageCreate) {
 		"characters.",
 	)
 
-	saveMessageScore(m.Author, messageLength)
-}
-
-func calculateScoreOfUser(username string) Score {
-	// Read user characters and mesages send
-	var userScore map[string]string = readUserScore(username)
-
-	// Convert value into int
-	char, err := strconv.ParseInt(userScore["char"], 10, 64)
-	msg, err := strconv.ParseInt(userScore["msg"], 10, 64)
-
-	// Calculate the user rank
-	var rank int = userRank(username)
-
-	return Score{
-		USER:     username,
-		CHAR:     char,
-		CHAR_LVL: calculateLevel(char),
-		MSG:      msg,
-		MSG_LVL:  calculateLevel(msg),
-		RATIO:    float64(char) / float64(msg),
-		RANK:     rank,
+	err := saveMessageScore(m.Author, messageLength)
+	if err != nil {
+		fmt.Println("Error:", err)
 	}
 }
 
-func calculateLevel(score int64) string {
+func calculateScoreOfUser(username *discordgo.User) (Score, error) {
+	// Read user characters and mesages send
+	var userScore map[string]int
+	var err error
+	userScore, err = readUserScore(username)
+	if err != nil {
+		return Score{}, err
+	}
+
+	// Calculate the user rank
+	//var rank int = userRank(username)
+
+	return Score{
+		USER:     discordUserCompleteName(username),
+		CHAR:     userScore["char"],
+		CHAR_LVL: calculateLevel(userScore["char"]),
+		MSG:      userScore["msg"],
+		MSG_LVL:  calculateLevel(userScore["msg"]),
+		RATIO:    float64(userScore["char"]) / float64(userScore["msg"]),
+		//RANK:     rank,
+	}, nil
+}
+
+func calculateLevel(score int) string {
 	switch {
 	case score >= 1000000000:
 		return "max"
@@ -218,4 +229,80 @@ func calculateLevel(score int64) string {
 
 func userRank(username string) int {
 	return 0
+}
+
+func readScores() (map[string]map[string]int, error) {
+	scoresFile, err := ioutil.ReadFile("scores.json")
+
+	// Check if the file already exist
+	// if not, we create it with a empty json object in it
+	if os.IsNotExist(err) {
+		// Try to write the file
+		err = ioutil.WriteFile("scores.json", []byte("{}"), 0665)
+		if err != nil {
+			return nil, err
+		} else {
+			// Re-read file with the content created
+			scoresFile, err = ioutil.ReadFile("scores.json")
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	// Load the json with score
+	var scores map[string]map[string]int
+	err = json.Unmarshal(scoresFile, scores)
+	if err != nil {
+		return nil, err
+	}
+
+	return scores, nil
+}
+
+func writeScores(scores map[string]map[string]int) error {
+	// Convert scores to json
+	scoresBytes, err := json.Marshal(scores)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile("scores.json", scoresBytes, 0665)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func saveMessageScore(author *discordgo.User, messageLength int) error {
+	// Read scores
+	scores, err := readScores()
+	if err != nil {
+		return err
+	}
+
+	// Upate the score of user
+	user := discordUserCompleteName(author)
+	scores[user]["char"] += messageLength
+	scores[user]["msg"] += 1
+
+	// Write the new score
+	err = writeScores(scores)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func readUserScore(author *discordgo.User) (map[string]int, error) {
+	var scores map[string]map[string]int
+	var err error
+	scores, err = readScores()
+	return scores[discordUserCompleteName(author)], err
+}
+
+func discordUserCompleteName(user *discordgo.User) string {
+	return user.Username + "#" + user.Discriminator
 }
