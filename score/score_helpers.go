@@ -101,7 +101,7 @@ func readScores() (map[string]map[string]int, error) {
 
 	// Load the json with score
 	var scores map[string]map[string]int
-	err = json.Unmarshal(scoresFile, scores)
+	err = json.Unmarshal(scoresFile, &scores)
 	if err != nil {
 		return nil, err
 	}
@@ -131,8 +131,17 @@ func SaveMessageScore(author *discordgo.User, messageLength int) error {
 		return err
 	}
 
-	// Upate the score of user
 	user := discord_helpers.DiscordUserCompleteName(author)
+
+	// Create the user if he doesn't exist
+	if scores[user] == nil {
+		scores[user] = map[string]int{
+			"char": 0,
+			"msg":  0,
+		}
+	}
+
+	// Upate the score of user
 	scores[user]["char"] += messageLength
 	scores[user]["msg"] += 1
 
