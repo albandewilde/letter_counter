@@ -68,3 +68,5 @@ Levels are calculed as follow for both characters and messages:
 - Level 28: 800 000 000 written (messages / characters)
 - Level 29: 900 000 000 written (messages / characters)
 - Level max: over 1 000 000 000 written (messages / characters)
+
+The rank is the addition of the message number and the messages written.
