@@ -175,5 +175,6 @@ func displayError(err error) {
 		"Error: ",
 		"\033[0m",
 		err,
+		"\n",
 	)
 }
