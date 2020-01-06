@@ -86,17 +86,16 @@ func getScore(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	fmt.Println(
+	fmt.Print(
 		"\033[36m",
 		time.Now().Format("[2006-01-02 15:04:05]"),
-		"\033[0",
-		":",
-		"\033[35m",
-		m.Author.Username,
-		"#",
-		m.Author.Discriminator,
 		"\033[0m",
-		"want to know his score.",
+		": ",
+		" The user ",
+		"\033[35m",
+		m.Author.Username+"#"+m.Author.Discriminator,
+		"\033[0m",
+		" want to know his score.\n",
 	)
 
 	var score Score
@@ -105,7 +104,7 @@ func getScore(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	var response string
 	if err != nil {
-		fmt.Println("Error:", err)
+		displayError(err)
 		response = "Sorry, something is wrong."
 	} else {
 
@@ -125,25 +124,25 @@ func getScore(s *discordgo.Session, m *discordgo.MessageCreate) {
 func counting(s *discordgo.Session, m *discordgo.MessageCreate) {
 	messageLength := len(m.Content)
 
-	fmt.Println(
+	fmt.Print(
 		"\033[36m",
 		time.Now().Format("[2006-01-02 15:04:05]"),
-		"\033[0",
-		":",
-		"The user",
-		"\033[35m",
-		m.Author.Username,
-		"#",
-		m.Author.Discriminator,
 		"\033[0m",
-		"write a message with",
+		": ",
+		" The user ",
+		"\033[35m",
+		m.Author.Username+"#"+m.Author.Discriminator,
+		"\033[0m",
+		" write a message with ",
+		"\033[33m",
 		messageLength,
-		"characters.",
+		"\033[0m",
+		" characters.\n",
 	)
 
 	err := score.SaveMessageScore(m.Author, messageLength)
 	if err != nil {
-		fmt.Println("Error:", err)
+		displayError(err)
 	}
 }
 
@@ -168,4 +167,13 @@ func calculateScoreOfUser(username *discordgo.User) (Score, error) {
 		RATIO:    float64(userScore["char"]) / float64(userScore["msg"]),
 		//RANK:     rank,
 	}, nil
+}
+
+func displayError(err error) {
+	fmt.Print(
+		"\033[31m",
+		"Error: ",
+		"\033[0m",
+		err,
+	)
 }
