@@ -76,8 +76,28 @@ func CalculateLevel(score int) string {
 	return "0"
 }
 
-func userRank(username string) int {
-	return 0
+func UserRank(username string) (int, error) {
+	scores, err := readScores()
+	if err != nil {
+		return 0, err
+	}
+
+	userScore := scores[username]["char"] + scores[username]["msg"]
+
+	// calculate the user place
+	rank := 1
+	for name, score := range scores {
+		// Don't compare to our self
+		if name == username {
+			continue
+		}
+
+		if score["char"]+score["msg"] > userScore {
+			rank += 1
+		}
+	}
+
+	return rank, nil
 }
 
 func readScores() (map[string]map[string]int, error) {

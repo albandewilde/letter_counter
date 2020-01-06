@@ -156,7 +156,11 @@ func calculateScoreOfUser(username *discordgo.User) (Score, error) {
 	}
 
 	// Calculate the user rank
-	//var rank int = userRank(username)
+	rank, err := score.UserRank(discord_helpers.DiscordUserCompleteName(username))
+	if err != nil {
+		rank = 0
+		displayError(err)
+	}
 
 	return Score{
 		USER:     discord_helpers.DiscordUserCompleteName(username),
@@ -165,7 +169,7 @@ func calculateScoreOfUser(username *discordgo.User) (Score, error) {
 		MSG:      userScore["msg"],
 		MSG_LVL:  score.CalculateLevel(userScore["msg"]),
 		RATIO:    float64(userScore["char"]) / float64(userScore["msg"]),
-		//RANK:     rank,
+		RANK:     rank,
 	}, nil
 }
 
