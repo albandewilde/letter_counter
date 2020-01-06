@@ -6,3 +6,6 @@ secrets.json
 
 # don't commit our env variables
 env.json
+
+# don't commit scores
+scores.json
