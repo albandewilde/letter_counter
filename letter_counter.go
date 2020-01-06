@@ -80,6 +80,12 @@ func readDiscordToken() (token string) {
 }
 
 func getScore(s *discordgo.Session, m *discordgo.MessageCreate) {
+
+	// To know his score, the message content must be `§score`
+	if m.Content != "§score" {
+		return
+	}
+
 	fmt.Println(
 		"\033[36m",
 		time.Now().Format("[2006-01-02 15:04:05]"),
