@@ -9,3 +9,6 @@ env.json
 
 # don't commit scores
 scores.json
+
+# Don't commit the compilled file
+letter_counter
