@@ -155,7 +155,7 @@ func SaveMessageScore(author *discordgo.User, messageLength int) error {
 
 	// Create the user if he doesn't exist
 	_, userExist := scores[user]
-	if userExist {
+	if !userExist {
 		scores[user] = map[string]int{
 			"char": 0,
 			"msg":  0,
