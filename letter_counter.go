@@ -25,8 +25,19 @@ type Score struct {
 	RANK     int
 }
 
+var discordToken string
+
+func init() {
+	// Read the discord token
+	var err error
+	discordToken, err = readDiscordToken()
+
+	if err != nil {
+		displayError(err)
+	}
+}
+
 func main() {
-	var discordToken string = readDiscordToken()
 
 	// Create a new Discord session using the provided bot token.
 	bot, err := discordgo.New("Bot " + discordToken)
@@ -56,11 +67,11 @@ func main() {
 	bot.Close()
 }
 
-func readDiscordToken() (token string) {
+func readDiscordToken() (token string, err error) {
 	// Read token in the `secrets.json` file
 	secretFile, err := ioutil.ReadFile("./secrets.json")
 	if err != nil {
-		fmt.Println("Error while reading secrets:", err)
+		return
 	}
 
 	type Secrets struct {
@@ -72,7 +83,7 @@ func readDiscordToken() (token string) {
 	// Parse json content
 	err = json.Unmarshal(secretFile, &secrets)
 	if err != nil {
-		fmt.Println("Error while parsing secrets:", err)
+		return
 	}
 
 	token = secrets.DISCORD
