@@ -97,16 +97,26 @@ func getScore(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	channel, _ := s.Channel(m.ChannelID)
+	guild, _ := s.Guild(m.GuildID)
 	fmt.Print(
 		"\033[36m",
 		time.Now().Format("[2006-01-02 15:04:05]"),
 		"\033[0m",
 		": ",
-		" The user ",
+		"The user ",
 		"\033[35m",
 		m.Author.Username+"#"+m.Author.Discriminator,
 		"\033[0m",
-		" want to know his score.\n",
+		" want to know his score in the channel ",
+		"\033[32m",
+		channel.Name,
+		"\033[0m",
+		" on the server ",
+		"\033[32m",
+		guild.Name,
+		"\033[0m",
+		".\n",
 	)
 
 	var score Score
@@ -135,12 +145,14 @@ func getScore(s *discordgo.Session, m *discordgo.MessageCreate) {
 func counting(s *discordgo.Session, m *discordgo.MessageCreate) {
 	messageLength := len(m.Content)
 
+	channel, _ := s.Channel(m.ChannelID)
+	guild, _ := s.Guild(m.GuildID)
 	fmt.Print(
 		"\033[36m",
 		time.Now().Format("[2006-01-02 15:04:05]"),
 		"\033[0m",
 		": ",
-		" The user ",
+		"The user ",
 		"\033[35m",
 		m.Author.Username+"#"+m.Author.Discriminator,
 		"\033[0m",
@@ -148,7 +160,15 @@ func counting(s *discordgo.Session, m *discordgo.MessageCreate) {
 		"\033[33m",
 		messageLength,
 		"\033[0m",
-		" characters.\n",
+		" characters in the channel ",
+		"\033[32m",
+		channel.Name,
+		"\033[0m",
+		" on the server ",
+		"\033[32m",
+		guild.Name,
+		"\033[0m",
+		".\n",
 	)
 
 	err := score.SaveMessageScore(m.Author, messageLength)
