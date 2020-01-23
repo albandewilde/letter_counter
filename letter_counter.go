@@ -97,8 +97,8 @@ func getScore(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	channel, _ := s.Channel(m.ChannelID)
-	guild, _ := s.Guild(m.GuildID)
+	var channel string = safeGetChannelName(s, m)
+	var guild string = safeGetGuildName(s, m)
 	fmt.Print(
 		"\033[36m",
 		time.Now().Format("[2006-01-02 15:04:05]"),
@@ -110,11 +110,11 @@ func getScore(s *discordgo.Session, m *discordgo.MessageCreate) {
 		"\033[0m",
 		" want to know his score in the channel ",
 		"\033[32m",
-		channel.Name,
+		channel,
 		"\033[0m",
 		" on the server ",
 		"\033[32m",
-		guild.Name,
+		guild,
 		"\033[0m",
 		".\n",
 	)
@@ -145,8 +145,8 @@ func getScore(s *discordgo.Session, m *discordgo.MessageCreate) {
 func counting(s *discordgo.Session, m *discordgo.MessageCreate) {
 	messageLength := len(m.Content)
 
-	channel, _ := s.Channel(m.ChannelID)
-	guild, _ := s.Guild(m.GuildID)
+	var channel string = safeGetChannelName(s, m)
+	var guild string = safeGetGuildName(s, m)
 	fmt.Print(
 		"\033[36m",
 		time.Now().Format("[2006-01-02 15:04:05]"),
@@ -162,11 +162,11 @@ func counting(s *discordgo.Session, m *discordgo.MessageCreate) {
 		"\033[0m",
 		" characters in the channel ",
 		"\033[32m",
-		channel.Name,
+		channel,
 		"\033[0m",
 		" on the server ",
 		"\033[32m",
-		guild.Name,
+		guild,
 		"\033[0m",
 		".\n",
 	)
@@ -212,4 +212,20 @@ func displayError(err error) {
 		err,
 		"\n",
 	)
+}
+
+func safeGetChannelName(s *discordgo.Session, m *discordgo.MessageCreate) string {
+	channel, err := s.Channel(m.ChannelID)
+	if err != nil {
+		return "UNKNOW"
+	}
+	return channel.Name
+}
+
+func safeGetGuildName(s *discordgo.Session, m *discordgo.MessageCreate) string {
+	guild, err := s.Guild(m.GuildID)
+	if err != nil {
+		return "UNKNOW"
+	}
+	return guild.Name
 }
