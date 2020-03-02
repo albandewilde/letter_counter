@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"unicode/utf8"
 
 	"github.com/bwmarrin/discordgo"
 
@@ -38,7 +39,6 @@ func init() {
 }
 
 func main() {
-
 	// Create a new Discord session using the provided bot token.
 	bot, err := discordgo.New("Bot " + discordToken)
 	if err != nil {
@@ -91,7 +91,6 @@ func readDiscordToken() (token string, err error) {
 }
 
 func getScore(s *discordgo.Session, m *discordgo.MessageCreate) {
-
 	// To know his score, the message content must be `§score`
 	if m.Content != "§score" {
 		return
@@ -143,7 +142,7 @@ func getScore(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func counting(s *discordgo.Session, m *discordgo.MessageCreate) {
-	messageLength := len(m.Content)
+	messageLength := utf8.RuneCountInString(m.Content)
 
 	var channel string = safeGetChannelName(s, m)
 	var guild string = safeGetGuildName(s, m)
