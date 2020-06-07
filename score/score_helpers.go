@@ -101,18 +101,18 @@ func UserRank(username string) (int, error) {
 }
 
 func readScores() (map[string]map[string]int, error) {
-	scoresFile, err := ioutil.ReadFile("scores.json")
+	scoresFile, err := ioutil.ReadFile("/scores.json")
 
 	// Check if the file already exist
 	// if not, we create it with a empty json object in it
 	if os.IsNotExist(err) {
 		// Try to write the file
-		err = ioutil.WriteFile("scores.json", []byte("{}"), 0665)
+		err = ioutil.WriteFile("/scores.json", []byte("{}"), 0665)
 		if err != nil {
 			return nil, err
 		} else {
 			// Re-read file with the content created
-			scoresFile, err = ioutil.ReadFile("scores.json")
+			scoresFile, err = ioutil.ReadFile("/scores.json")
 			if err != nil {
 				return nil, err
 			}
@@ -136,7 +136,7 @@ func writeScores(scores map[string]map[string]int) error {
 		return err
 	}
 
-	err = ioutil.WriteFile("scores.json", scoresBytes, 0665)
+	err = ioutil.WriteFile("/scores.json", scoresBytes, 0665)
 	if err != nil {
 		return err
 	}
